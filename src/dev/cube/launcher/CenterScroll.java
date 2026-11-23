@@ -36,7 +36,7 @@ final class CenterScroll {
             if (max <= 0) return 0;
             int target = r.centerX() - getWidth() / 2;
             target = Math.max(0, Math.min(max, target));
-            return target - getScrollX();
+            return target - glide.position();
         }
     }
 
@@ -61,7 +61,7 @@ final class CenterScroll {
             if (max <= 0) return 0;
             int target = r.centerY() - getHeight() / 2;
             target = Math.max(0, Math.min(max, target));
-            return target - getScrollY();
+            return target - glide.position();
         }
     }
 
@@ -77,12 +77,19 @@ final class CenterScroll {
 
         Glide(android.view.View v, boolean horizontal) { this.view = v; this.horizontal = horizontal; }
 
+        /** Where the view is heading (its scroll position once the running animation ends). */
+        int position() {
+            boolean running = anim != null && anim.isRunning();
+            return running ? target : horizontal ? view.getScrollX() : view.getScrollY();
+        }
+
         void by(int delta) {
             if (delta == 0) return;
             int from = horizontal ? view.getScrollX() : view.getScrollY();
-            boolean running = anim != null && anim.isRunning();
-            target = (running ? target : from) + delta;
-            if (running) anim.cancel();
+            int to = position() + delta;
+            if (to == position()) return;
+            target = to;
+            if (anim != null) anim.cancel();
             final int start = from, end = target;
             anim = android.animation.ValueAnimator.ofFloat(0f, 1f);
             anim.setDuration(Look.d(450));

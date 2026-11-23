@@ -480,15 +480,24 @@ public class LauncherView extends FrameLayout implements SettingsPanel.Host {
 
     // ================================================================ home row
 
+    /** Apps were installed, removed or changed (also arrives while the user is elsewhere on Home). */
     void reload() {
         apps = loadAll();
         View cur = findFocus();
-        String want = cur != null && cur.getTag() instanceof String ? (String) cur.getTag() : lastFocusTag;
-        buildRow(want);
-        if (allPanel.getVisibility() == VISIBLE) buildAllGrid(null);
+        if (cur == null || cur.getParent() == row) {   // focus was in the apps row (or nowhere): keep it there
+            buildRow(cur != null && cur.getTag() instanceof String ? (String) cur.getTag() : lastFocusTag);
+        } else {
+            buildRow(null, false);                      // focus is in another row or panel: leave it alone
+        }
+        if (allPanel.getVisibility() == VISIBLE && optionsLayer.getVisibility() != VISIBLE) {
+            View f = findFocus();
+            buildAllGrid(f != null && f.getTag() instanceof String ? (String) f.getTag() : null);
+        }
     }
 
-    private void buildRow(String focusTag) {
+    private void buildRow(String focusTag) { buildRow(focusTag, true); }
+
+    private void buildRow(String focusTag, boolean takeFocus) {
         row.removeAllViews();
         List<App> home = homeApps();
         int tileW = px(132 * Look.scale), tileH = px(74 * Look.scale), gap = px(9);
@@ -503,6 +512,7 @@ public class LauncherView extends FrameLayout implements SettingsPanel.Host {
             t.setText("No apps on Home. Open All apps (top right) to add some.");
             row.addView(t);
         }
+        if (!takeFocus) return;
         View v = focusTag != null ? row.findViewWithTag(focusTag) : null;
         if (v == null && focusTag != null && focusTag.startsWith("top:")) v = findViewWithTag(focusTag);
         if (v == null && row.getChildCount() > 0 && !home.isEmpty()) v = row.getChildAt(0);
