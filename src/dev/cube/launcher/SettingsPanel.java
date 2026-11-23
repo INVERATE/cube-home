@@ -103,6 +103,9 @@ final class SettingsPanel extends FrameLayout {
                 choice(str(R.string.set_interval), "wall_interval", arr(R.array.interval_names), 1, false);
                 break;
             case 3:
+                screensaverDelay();
+                break;
+            case 4:
                 choice(str(R.string.set_language), "lang", arr(R.array.language_names), 0, true);
                 choice(str(R.string.set_size), "look_size", arr(R.array.size_names), 1, true);
                 choice(str(R.string.set_corners), "look_radius", arr(R.array.radius_names), 2, true);
@@ -213,6 +216,43 @@ final class SettingsPanel extends FrameLayout {
         prefs.edit().putInt(key, (prefs.getInt(key, def) + dir + n) % n).apply();
         if (appearance) appearanceChanged = true;
         show.run();
+    }
+
+    /** Fire OS starts the screensaver when the screen-off timeout runs out (a system setting). */
+    private static final int[] SS_DELAYS = {1, 5, 10, 15, 30, 60};   // minutes
+
+    private void screensaverDelay() {
+        final android.content.ContentResolver cr = getContext().getContentResolver();
+        final String[] names = arr(R.array.ss_delay_names);
+        final TextView value = text(17, Color.WHITE, false);
+        final int[] idx = {1};
+        Runnable show = () -> {
+            int ms = android.provider.Settings.System.getInt(cr, android.provider.Settings.System.SCREEN_OFF_TIMEOUT, 300000);
+            int best = 0;   // nearest choice to the current value
+            for (int k = 0; k < SS_DELAYS.length; k++) {
+                if (Math.abs(SS_DELAYS[k] * 60000 - ms) < Math.abs(SS_DELAYS[best] * 60000 - ms)) best = k;
+            }
+            idx[0] = best;
+            value.setText("‹  " + names[best] + "  ›");
+        };
+        show.run();
+        LinearLayout r = row(str(R.string.set_ss_delay), value);
+        java.util.function.IntConsumer step = dir -> {
+            int k = (idx[0] + dir + SS_DELAYS.length) % SS_DELAYS.length;
+            try {
+                android.provider.Settings.System.putInt(cr, android.provider.Settings.System.SCREEN_OFF_TIMEOUT,
+                        SS_DELAYS[k] * 60000);
+            } catch (Exception e) {
+                android.util.Log.w("CubeHome", "screensaver delay: " + e);
+            }
+            show.run();
+        };
+        r.setOnClickListener(v -> step.accept(1));
+        r.setOnKeyListener((v, code, ev) -> {
+            if (code != KeyEvent.KEYCODE_DPAD_LEFT && code != KeyEvent.KEYCODE_DPAD_RIGHT) return false;
+            if (ev.getAction() == KeyEvent.ACTION_DOWN) step.accept(code == KeyEvent.KEYCODE_DPAD_RIGHT ? 1 : -1);
+            return true;
+        });
     }
 
     private void toggle(String label, String key, boolean def, boolean appearance) {

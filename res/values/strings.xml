@@ -68,6 +68,7 @@
         <item>Jellyfin</item>
         <item>Home</item>
         <item>Wallpaper</item>
+        <item>Screensaver</item>
         <item>Appearance</item>
         <item>System</item>
     </string-array>
@@ -114,5 +115,14 @@
         <item>Automatic</item>
         <item>English</item>
         <item>Français</item>
+    </string-array>
+    <string name="set_ss_delay">Starts after</string>
+    <string-array name="ss_delay_names">
+        <item>1 min</item>
+        <item>5 min</item>
+        <item>10 min</item>
+        <item>15 min</item>
+        <item>30 min</item>
+        <item>1 hour</item>
     </string-array>
 </resources>
