@@ -49,7 +49,15 @@ public class MainActivity extends Activity {
         HomeService.bypass = false;
         HomeService.cubeVisible = true;
         HomeService.unanswered = 0;
-        view.setNotice(serviceEnabled() ? null : getString(R.string.notice_service));
+        if (!serviceEnabled()) {
+            // Listed in the settings but not running: Fire OS force-stops Cube Home when the TV
+            // wakes from its screensaver, and Android then leaves the service unbound.
+            // Switching it off and on again binds it (needs WRITE_SECURE_SETTINGS).
+            SelfRepair.rebind(this);
+            view.postDelayed(() -> view.setNotice(serviceEnabled() ? null : getString(R.string.notice_service)), 1500);
+        } else {
+            view.setNotice(null);
+        }
         // Rebuild only when apps were installed/removed, so returning home never flickers.
         if (dirty) {
             dirty = false;

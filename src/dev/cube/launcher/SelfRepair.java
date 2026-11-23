@@ -24,10 +24,13 @@ final class SelfRepair {
     private SelfRepair() { }
 
     /**
-     * After an update Android may keep the Home button service unbound: switch it off and on
-     * again (what install.sh does over ADB).
+     * After an update, or after Fire OS force-stops Cube Home when waking from the screensaver,
+     * the Home button service stays unbound: switch it off and on again (what install.sh does).
      */
     static void rebind(Context c) {
+        if (c.checkSelfPermission(android.Manifest.permission.WRITE_SECURE_SETTINGS)
+                != PackageManager.PERMISSION_GRANTED) return;
+        Log.i(HomeService.TAG, "Home button service not running: rebinding it");
         try {
             String svc = c.getPackageName() + "/" + HomeService.class.getName();
             String list = Settings.Secure.getString(c.getContentResolver(),
