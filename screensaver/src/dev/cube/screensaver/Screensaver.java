@@ -1,6 +1,7 @@
-package dev.cube.launcher;
+package dev.cube.screensaver;
 
 import android.graphics.Color;
+import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
 import android.os.Handler;
@@ -15,12 +16,16 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.VideoView;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
+
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
 /**
- * Cube Home's screensaver (an Android "dream", selected in place of Amazon's by install.sh):
+ * Cube Home's screensaver (an Android "dream", selected in place of Amazon's by Cube Home):
  * Fire TV's own aerial videos, one after another in random order, fading through black
  * between scenes, with the clock and the scene's description. No ads, no sound.
  */
@@ -41,16 +46,10 @@ public class Screensaver extends DreamService {
     };
 
     @Override
-    protected void attachBaseContext(android.content.Context base) {
-        super.attachBaseContext(Lang.wrap(base));
-    }
-
-    @Override
     public void onAttachedToWindow() {
         super.onAttachedToWindow();
         setInteractive(false);   // any key wakes the TV
         setFullscreen(true);
-        Look.load(this);
         float dp = getResources().getDisplayMetrics().density;
 
         FrameLayout root = new FrameLayout(this);
@@ -101,7 +100,7 @@ public class Screensaver extends DreamService {
     public void onDreamingStarted() {
         super.onDreamingStarted();
         try {
-            scenes = Wallpaper.scenes(this);
+            scenes = scenes();
             Collections.shuffle(scenes);
         } catch (Exception e) {
             Log.w(TAG, "screensaver: " + e);
@@ -135,9 +134,23 @@ public class Screensaver extends DreamService {
         TextView t = new TextView(this);
         t.setTextSize(TypedValue.COMPLEX_UNIT_SP, sp);
         t.setTextColor(Color.WHITE);
-        t.setTypeface(Look.font(strong));
+        t.setTypeface(strong ? Typeface.create("sans-serif-medium", Typeface.NORMAL) : Typeface.DEFAULT);
         t.setShadowLayer(8 * getResources().getDisplayMetrics().density, 0, 2, 0xCC000000);
         t.setIncludeFontPadding(false);
         return t;
+    }
+
+    /** Amazon aerial scenes: {video url, name, description} (res/raw/amazon_aerials.txt). */
+    private List<String[]> scenes() throws Exception {
+        List<String[]> l = new ArrayList<>();
+        try (BufferedReader in = new BufferedReader(new InputStreamReader(
+                getResources().openRawResource(R.raw.amazon_aerials), "UTF-8"))) {
+            String line;
+            while ((line = in.readLine()) != null) {
+                String[] f = line.split("\t");
+                if (f.length == 3) l.add(f);
+            }
+        }
+        return l;
     }
 }

@@ -33,12 +33,21 @@ final class Updater {
 
     private Updater() { }
 
+    static final String SCREENSAVER = "dev.cube.screensaver";
+
     /** manual: from the settings (always checks, reports "up to date"); else at most once a day. */
-    static void check(Context ctx, boolean manual) {
+    static void check(Context ctx, boolean manual) { check(ctx, manual, manual); }
+
+    /**
+     * A release carries cubehome.apk and screensaver.apk. One app is updated per run, the
+     * screensaver first: its install finishing starts the next run (see Receiver), and the
+     * Cube Home install, which restarts this app, comes last.
+     */
+    private static void check(Context ctx, boolean manual, boolean now) {
         final Context c = ctx.getApplicationContext();
         SharedPreferences p = c.getSharedPreferences("cubehome", Context.MODE_PRIVATE);
         if (REPO.isEmpty() || busy) return;
-        if (!manual && System.currentTimeMillis() - p.getLong("update_check", 0) < DAY) return;
+        if (!now && System.currentTimeMillis() - p.getLong("update_check", 0) < DAY) return;
         busy = true;
         p.edit().putLong("update_check", System.currentTimeMillis()).apply();
         if (manual) toast(c, R.string.update_checking);
@@ -47,20 +56,28 @@ final class Updater {
                 JSONObject rel = new JSONObject(new String(get(
                         "https://api.github.com/repos/" + REPO + "/releases/latest"), "UTF-8"));
                 int latest = Integer.parseInt(rel.getString("tag_name").replaceAll("\\D", ""));
-                int mine = c.getPackageManager().getPackageInfo(c.getPackageName(), 0).versionCode;
-                if (latest <= mine) {
-                    if (manual) toast(c, R.string.update_uptodate);
-                    return;
-                }
+                String want = installed(c, SCREENSAVER) < latest ? "screensaver.apk"
+                        : installed(c, c.getPackageName()) < latest ? "cubehome.apk" : null;
                 String apk = null;
                 JSONArray assets = rel.getJSONArray("assets");
                 for (int i = 0; i < assets.length(); i++) {
                     JSONObject a = assets.getJSONObject(i);
-                    if (a.getString("name").endsWith(".apk")) apk = a.getString("browser_download_url");
+                    if (a.getString("name").equals(want)) apk = a.getString("browser_download_url");
                 }
-                if (apk == null) throw new Exception("release has no apk");
+                if (apk == null && "screensaver.apk".equals(want)
+                        && installed(c, c.getPackageName()) < latest) {   // older release without it
+                    want = "cubehome.apk";
+                    for (int i = 0; i < assets.length(); i++) {
+                        JSONObject a = assets.getJSONObject(i);
+                        if (a.getString("name").equals(want)) apk = a.getString("browser_download_url");
+                    }
+                }
+                if (apk == null) {
+                    if (manual) toast(c, R.string.update_uptodate);
+                    return;
+                }
                 toast(c, R.string.update_downloading);
-                install(c, get(apk));
+                install(c, get(apk), manual);
             } catch (Exception e) {
                 Log.w(TAG, "update: " + e);
                 if (manual) toast(c, R.string.update_check_failed);
@@ -71,7 +88,16 @@ final class Updater {
     }
 
     /** Hands the APK to Android's installer; Receiver shows the confirmation. */
-    private static void install(Context c, byte[] apk) throws Exception {
+    /** Installed versionCode of a package, or -1. */
+    private static int installed(Context c, String pkg) {
+        try {
+            return c.getPackageManager().getPackageInfo(pkg, 0).versionCode;
+        } catch (Exception e) {
+            return -1;
+        }
+    }
+
+    private static void install(Context c, byte[] apk, boolean manual) throws Exception {
         PackageInstaller pi = c.getPackageManager().getPackageInstaller();
         int id = pi.createSession(new PackageInstaller.SessionParams(
                 PackageInstaller.SessionParams.MODE_FULL_INSTALL));
@@ -81,7 +107,7 @@ final class Updater {
                 s.fsync(out);
             }
             PendingIntent done = PendingIntent.getBroadcast(c, id,
-                    new Intent(c, Receiver.class), PendingIntent.FLAG_UPDATE_CURRENT);
+                    new Intent(c, Receiver.class).putExtra("manual", manual), PendingIntent.FLAG_UPDATE_CURRENT);
             s.commit(done.getIntentSender());
         }
     }
@@ -100,7 +126,10 @@ final class Updater {
             if (status == PackageInstaller.STATUS_PENDING_USER_ACTION) {
                 Intent confirm = i.getParcelableExtra(Intent.EXTRA_INTENT);
                 if (confirm != null) c.startActivity(confirm.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
-            } else if (status != PackageInstaller.STATUS_SUCCESS) {
+            } else if (status == PackageInstaller.STATUS_SUCCESS) {
+                SelfRepair.run(c);                                  // points Fire OS at the new screensaver
+                check(c, i.getBooleanExtra("manual", false), true); // then the next app, if any
+            } else {
                 Log.w(TAG, "update: install failed: " + i.getStringExtra(PackageInstaller.EXTRA_STATUS_MESSAGE));
                 Toast.makeText(c, Lang.wrap(c).getString(R.string.update_not_installed), Toast.LENGTH_SHORT).show();
             }

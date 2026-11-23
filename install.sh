@@ -5,7 +5,8 @@ set -euo pipefail
 IP="${1:-192.168.1.62}"; ADB="$HOME/android-dev/platform-tools/adb"; D="$IP:5555"
 cd "$(dirname "$0")"
 "$ADB" connect "$D" >/dev/null
-[ -f build/cubehome.apk ] || ./build.sh
+[ -f build/screensaver.apk ] || ./build.sh
+"$ADB" -s "$D" install -r build/screensaver.apk
 "$ADB" -s "$D" install -r build/cubehome.apk
 # Home-key signal from the system log (fast path; the app falls back to window events without it).
 "$ADB" -s "$D" shell pm grant dev.cube.launcher android.permission.READ_LOGS
@@ -20,7 +21,7 @@ sleep 1
 # Let the ~20 ms launch alarm fire immediately (skips the 5 s post-Home app-switch lock).
 "$ADB" -s "$D" shell settings put global alarm_manager_constants min_futurity=0
 # Cube Home's screensaver (aerial videos, no ads) instead of Amazon's.
-"$ADB" -s "$D" shell settings put secure screensaver_components dev.cube.launcher/.Screensaver
+"$ADB" -s "$D" shell settings put secure screensaver_components dev.cube.screensaver/.Screensaver
 # Let Cube Home install its own updates (Android still asks for confirmation each time).
 "$ADB" -s "$D" shell appops set dev.cube.launcher REQUEST_INSTALL_PACKAGES allow
 "$ADB" -s "$D" shell am start -n dev.cube.launcher/.MainActivity >/dev/null

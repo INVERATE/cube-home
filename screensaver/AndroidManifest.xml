@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Cube Home's screensaver, a separate app: Fire OS force-stops the app whose screensaver
+     was running when the TV wakes up, and that must never be Cube Home itself. -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="dev.cube.screensaver">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <application
+        android:label="@string/app_name"
+        android:icon="@drawable/ic_launcher"
+        android:allowBackup="false">
+        <service
+            android:name=".Screensaver"
+            android:exported="true"
+            android:label="@string/app_name"
+            android:permission="android.permission.BIND_DREAM_SERVICE">
+            <intent-filter>
+                <action android:name="android.service.dreams.DreamService" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </service>
+    </application>
+</manifest>

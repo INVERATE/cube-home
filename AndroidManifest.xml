@@ -52,18 +52,6 @@
                 android:name="android.accessibilityservice"
                 android:resource="@xml/home_service" />
         </service>
-        <!-- Screensaver: Fire TV's aerial videos (selected by install.sh in place of Amazon's). -->
-        <service
-            android:name=".Screensaver"
-            android:exported="true"
-            android:label="Cube Home aerials"
-            android:permission="android.permission.BIND_DREAM_SERVICE">
-            <intent-filter>
-                <action android:name="android.service.dreams.DreamService" />
-                <category android:name="android.intent.category.DEFAULT" />
-            </intent-filter>
-        </service>
-
         <!-- Self-update: install status, and "Cube Home was updated". -->
         <receiver android:name=".Updater$Receiver" android:exported="false">
             <intent-filter>

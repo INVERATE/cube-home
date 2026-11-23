@@ -75,6 +75,16 @@ final class SelfRepair {
                     Settings.Secure.ACCESSIBILITY_ENABLED, 0) != 1) {
                 Settings.Secure.putInt(c.getContentResolver(), Settings.Secure.ACCESSIBILITY_ENABLED, 1);
             }
+            // Cube Home's screensaver is its own app (see build.sh): use it once installed.
+            String ss = Updater.SCREENSAVER + "/.Screensaver";
+            String cur = Settings.Secure.getString(c.getContentResolver(), "screensaver_components");
+            boolean have = false;
+            try { c.getPackageManager().getPackageInfo(Updater.SCREENSAVER, 0); have = true; } catch (Exception ignored) { }
+            if (have && !ss.equals(cur)
+                    && (cur == null || cur.startsWith(c.getPackageName()) || cur.startsWith("com.amazon.ftv.screensaver"))) {
+                Settings.Secure.putString(c.getContentResolver(), "screensaver_components", ss);
+                Log.i(HomeService.TAG, "screensaver set to " + ss);
+            }
             String alarm = Settings.Global.getString(c.getContentResolver(), ALARM_KEY);
             if (alarm == null || !alarm.contains(ALARM_VALUE)) {
                 boolean empty = alarm == null || alarm.isEmpty() || "null".equals(alarm);
