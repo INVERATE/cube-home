@@ -30,7 +30,6 @@ final class SettingsPanel extends FrameLayout {
         void checkForUpdate();
     }
 
-    private static final String[] SECTIONS = {"Jellyfin", "Home", "Wallpaper", "Appearance", "System"};
 
     private final SharedPreferences prefs;
     private final Host host;
@@ -54,7 +53,7 @@ final class SettingsPanel extends FrameLayout {
         col.setOrientation(LinearLayout.VERTICAL);
         col.setPadding(px(48), px(30), px(48), 0);
         TextView title = text(26, Color.WHITE, true);
-        title.setText("Cube Home settings");
+        title.setText(R.string.settings_title);
         col.addView(title);
         hint = text(13, 0xFF9CA3AF, false);
         hint.setPadding(0, px(8), 0, px(18));
@@ -64,7 +63,8 @@ final class SettingsPanel extends FrameLayout {
         panes.setOrientation(LinearLayout.HORIZONTAL);
         sections = new LinearLayout(ctx);
         sections.setOrientation(LinearLayout.VERTICAL);
-        for (int k = 0; k < SECTIONS.length; k++) sections.addView(sectionItem(k));
+        String[] names = getResources().getStringArray(R.array.sections);
+        for (int k = 0; k < names.length; k++) sections.addView(sectionItem(k, names[k]));
         panes.addView(sections, new LinearLayout.LayoutParams(px(230), -2));
         View divider = new View(ctx);
         divider.setBackgroundColor(0x22FFFFFF);
@@ -87,31 +87,32 @@ final class SettingsPanel extends FrameLayout {
     private void build(int section) {
         switch (section) {
             case 0:
-                textRow("Server address", "jf_url", "http://192.168.1.10:8096", false);
-                textRow("API key", "jf_key", "", true);
-                textRow("User", "jf_user", "", false);
+                textRow(str(R.string.set_server), "jf_url", "http://192.168.1.10:8096", false);
+                textRow(str(R.string.set_key), "jf_key", "", true);
+                textRow(str(R.string.set_user), "jf_user", "", false);
                 break;
             case 1:
-                toggle("Continue watching row", "row_resume", true, false);
-                toggle("Next up row", "row_nextup", true, false);
-                toggle("Recently added row", "row_latest", true, false);
+                toggle(str(R.string.set_row_resume), "row_resume", true, false);
+                toggle(str(R.string.set_row_nextup), "row_nextup", true, false);
+                toggle(str(R.string.set_row_latest), "row_latest", true, false);
                 break;
             case 2:
-                toggle("Amazon aerials", "wall_src_amazon", true, false);
-                toggle("NASA Earth photos", "wall_src_nasa", true, false);
-                toggle("Bing photo of the day", "wall_src_bing", false, false);
-                choice("Change picture", "wall_interval", Wallpaper.INTERVAL_NAMES, 1, false);
+                toggle(str(R.string.set_src_amazon), "wall_src_amazon", true, false);
+                toggle(str(R.string.set_src_nasa), "wall_src_nasa", true, false);
+                toggle(str(R.string.set_src_bing), "wall_src_bing", false, false);
+                choice(str(R.string.set_interval), "wall_interval", arr(R.array.interval_names), 1, false);
                 break;
             case 3:
-                choice("Size", "look_size", Look.SIZE_NAMES, 1, true);
-                choice("Corners", "look_radius", Look.RADIUS_NAMES, 2, true);
-                choice("Font", "look_font", Look.FONT_NAMES, 0, true);
-                choice("Selection colour", "look_color", Look.COLOR_NAMES, 0, true);
-                choice("Animation speed", "look_speed", Look.SPEED_NAMES, 2, true);
+                choice(str(R.string.set_language), "lang", arr(R.array.language_names), 0, true);
+                choice(str(R.string.set_size), "look_size", arr(R.array.size_names), 1, true);
+                choice(str(R.string.set_corners), "look_radius", arr(R.array.radius_names), 2, true);
+                choice(str(R.string.set_font), "look_font", arr(R.array.font_names), 0, true);
+                choice(str(R.string.set_color), "look_color", arr(R.array.color_names), 0, true);
+                choice(str(R.string.set_speed), "look_speed", arr(R.array.speed_names), 2, true);
                 break;
             default:
-                action("Fire TV settings", host::openFireTvSettings);
-                action("Check for updates  ·  version " + version(), host::checkForUpdate);
+                action(str(R.string.set_firetv), host::openFireTvSettings);
+                action(getContext().getString(R.string.set_update, version()), host::checkForUpdate);
         }
     }
 
@@ -163,9 +164,9 @@ final class SettingsPanel extends FrameLayout {
     }
 
     /** A section name on the left: selecting it shows its settings. */
-    private View sectionItem(final int k) {
+    private View sectionItem(final int k, String name) {
         final TextView t = text(18, Color.WHITE, false);
-        t.setText(SECTIONS[k]);
+        t.setText(name);
         t.setFocusable(true);
         t.setPadding(px(16), px(12), px(16), px(12));
         final GradientDrawable bg = new GradientDrawable();
@@ -180,9 +181,9 @@ final class SettingsPanel extends FrameLayout {
         t.setOnFocusChangeListener((v, has) -> {
             if (has) {
                 show(k);
-                hint.setText("▲ ▼ choose a section     ▶ or OK open it     Back close");
+                hint.setText(R.string.hint_sections);
             } else {
-                hint.setText("OK or ◀ ▶ change     Back to sections");
+                hint.setText(R.string.hint_settings);
             }
             for (int i = 0; i < sections.getChildCount(); i++) ((Runnable) sections.getChildAt(i).getTag()).run();
         });
@@ -215,14 +216,14 @@ final class SettingsPanel extends FrameLayout {
     }
 
     private void toggle(String label, String key, boolean def, boolean appearance) {
-        choice(label, key, new String[]{"Off", "On"}, def ? 1 : 0, appearance);
+        choice(label, key, new String[]{str(R.string.off), str(R.string.on)}, def ? 1 : 0, appearance);
     }
 
     private void textRow(String label, String key, String hint, boolean secret) {
         final TextView value = text(17, Color.WHITE, false);
         Runnable show = () -> {
             String v = prefs.getString(key, "");
-            value.setText(v.isEmpty() ? "Not set" : secret ? "••••••" + v.substring(Math.max(0, v.length() - 4)) : v);
+            value.setText(v.isEmpty() ? str(R.string.not_set) : secret ? "••••••" + v.substring(Math.max(0, v.length() - 4)) : v);
         };
         show.run();
         LinearLayout r = row(label, value);
@@ -235,12 +236,12 @@ final class SettingsPanel extends FrameLayout {
             new AlertDialog.Builder(getContext())
                     .setTitle(label)
                     .setView(in)
-                    .setPositiveButton("Save", (d, w) -> {
+                    .setPositiveButton(R.string.save, (d, w) -> {
                         prefs.edit().putString(key, in.getText().toString().trim()).remove("jf_user_id").apply();
                         Jellyfin.reset();
                         show.run();
                     })
-                    .setNegativeButton("Cancel", null)
+                    .setNegativeButton(R.string.cancel, null)
                     .show();
         });
     }
@@ -295,4 +296,8 @@ final class SettingsPanel extends FrameLayout {
     }
 
     private int px(float v) { return Math.round(v * dp); }
+
+    private String str(int id) { return getContext().getString(id); }
+
+    private String[] arr(int id) { return getResources().getStringArray(id); }
 }

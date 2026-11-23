@@ -41,7 +41,7 @@ final class Updater {
         if (!manual && System.currentTimeMillis() - p.getLong("update_check", 0) < DAY) return;
         busy = true;
         p.edit().putLong("update_check", System.currentTimeMillis()).apply();
-        if (manual) toast(c, "Checking for updates…");
+        if (manual) toast(c, R.string.update_checking);
         new Thread(() -> {
             try {
                 JSONObject rel = new JSONObject(new String(get(
@@ -49,7 +49,7 @@ final class Updater {
                 int latest = Integer.parseInt(rel.getString("tag_name").replaceAll("\\D", ""));
                 int mine = c.getPackageManager().getPackageInfo(c.getPackageName(), 0).versionCode;
                 if (latest <= mine) {
-                    if (manual) toast(c, "Cube Home is up to date");
+                    if (manual) toast(c, R.string.update_uptodate);
                     return;
                 }
                 String apk = null;
@@ -59,11 +59,11 @@ final class Updater {
                     if (a.getString("name").endsWith(".apk")) apk = a.getString("browser_download_url");
                 }
                 if (apk == null) throw new Exception("release has no apk");
-                toast(c, "Downloading Cube Home update…");
+                toast(c, R.string.update_downloading);
                 install(c, get(apk));
             } catch (Exception e) {
                 Log.w(TAG, "update: " + e);
-                if (manual) toast(c, "Couldn't check for updates");
+                if (manual) toast(c, R.string.update_check_failed);
             } finally {
                 busy = false;
             }
@@ -102,7 +102,7 @@ final class Updater {
                 if (confirm != null) c.startActivity(confirm.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
             } else if (status != PackageInstaller.STATUS_SUCCESS) {
                 Log.w(TAG, "update: install failed: " + i.getStringExtra(PackageInstaller.EXTRA_STATUS_MESSAGE));
-                Toast.makeText(c, "Update not installed", Toast.LENGTH_SHORT).show();
+                Toast.makeText(c, Lang.wrap(c).getString(R.string.update_not_installed), Toast.LENGTH_SHORT).show();
             }
         }
     }
@@ -126,7 +126,8 @@ final class Updater {
         }
     }
 
-    private static void toast(Context c, String s) {
+    private static void toast(Context c, int text) {
+        String s = Lang.wrap(c).getString(text);
         new Handler(Looper.getMainLooper()).post(() -> Toast.makeText(c, s, Toast.LENGTH_SHORT).show());
     }
 }

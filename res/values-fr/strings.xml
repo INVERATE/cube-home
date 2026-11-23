@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="svc_desc">Envoie le bouton Accueil vers Cube Home au lieu de l\'écran d\'accueil Amazon.</string>
+    <string name="btn_new_wallpaper">Nouveau fond d\'écran</string>
+    <string name="btn_all_apps">Toutes les applis</string>
+    <string name="btn_settings">Paramètres</string>
+    <string name="btn_amazon_home">Accueil Amazon</string>
+    <string name="all_hint">Maintenez OK pour les options</string>
+    <string name="no_apps">Aucune appli sur l\'accueil. Ouvrez Toutes les applis (en haut à droite) pour en ajouter.</string>
+    <string name="row_resume">Reprendre</string>
+    <string name="row_nextup">À suivre</string>
+    <string name="row_latest">Ajouts récents</string>
+    <string name="no_player">Installez Wholphin ou Jellyfin pour lire</string>
+    <string name="player_failed">Impossible d\'ouvrir le lecteur</string>
+    <string name="menu_resume">Reprendre</string>
+    <string name="menu_play">Lire</string>
+    <string name="menu_details">Détails</string>
+    <string name="menu_watched">Marquer comme vu</string>
+    <string name="menu_remove_resume">Retirer de Reprendre</string>
+    <string name="toast_watched">%1$s marqué comme vu</string>
+    <string name="toast_removed_resume">%1$s retiré de Reprendre</string>
+    <string name="server_unreachable">Serveur Jellyfin injoignable</string>
+    <string name="menu_add_home">Ajouter à l\'accueil</string>
+    <string name="menu_remove_home">Retirer de l\'accueil</string>
+    <string name="menu_app_info">Infos sur l\'appli</string>
+    <string name="toast_added_home">%1$s ajouté à l\'accueil</string>
+    <string name="toast_removed_home">%1$s retiré de l\'accueil</string>
+    <string name="open_failed">Impossible d\'ouvrir %1$s</string>
+    <string name="notice_service">Le service du bouton Accueil est désactivé : Accueil ouvre l\'écran Amazon. Réactivez-le via ADB.</string>
+    <string name="jf_left_h">%1$d h %2$d min restantes</string>
+    <string name="jf_left_min">%1$d min restantes</string>
+    <string name="jf_new_eps">%1$d nouveaux épisodes</string>
+    <string name="jf_new">Nouveaux épisodes</string>
+    <string name="nasa_caption">La Terre vue de l\'ISS</string>
+    <string name="nasa_expedition">Expédition %1$s</string>
+    <string name="update_checking">Recherche de mises à jour…</string>
+    <string name="update_uptodate">Cube Home est à jour</string>
+    <string name="update_downloading">Téléchargement de la mise à jour…</string>
+    <string name="update_check_failed">Impossible de rechercher les mises à jour</string>
+    <string name="update_not_installed">Mise à jour non installée</string>
+    <string name="settings_title">Paramètres de Cube Home</string>
+    <string name="hint_sections">▲ ▼ choisir une section     ▶ ou OK l\'ouvrir     Retour fermer</string>
+    <string name="hint_settings">OK ou ◀ ▶ modifier     Retour aux sections</string>
+    <string name="set_server">Adresse du serveur</string>
+    <string name="set_key">Clé d\'API</string>
+    <string name="set_user">Utilisateur</string>
+    <string name="set_row_resume">Ligne Reprendre</string>
+    <string name="set_row_nextup">Ligne À suivre</string>
+    <string name="set_row_latest">Ligne Ajouts récents</string>
+    <string name="set_src_amazon">Vues aériennes Amazon</string>
+    <string name="set_src_nasa">Photos de la Terre (NASA)</string>
+    <string name="set_src_bing">Photo du jour Bing</string>
+    <string name="set_interval">Changer d\'image</string>
+    <string name="set_language">Langue</string>
+    <string name="set_size">Taille</string>
+    <string name="set_corners">Coins</string>
+    <string name="set_font">Police</string>
+    <string name="set_color">Couleur de sélection</string>
+    <string name="set_speed">Vitesse des animations</string>
+    <string name="set_firetv">Paramètres Fire TV</string>
+    <string name="set_update">Rechercher des mises à jour  ·  version %1$s</string>
+    <string name="off">Désactivé</string>
+    <string name="on">Activé</string>
+    <string name="not_set">Non défini</string>
+    <string name="save">Enregistrer</string>
+    <string name="cancel">Annuler</string>
+    <string-array name="sections">
+        <item>Jellyfin</item>
+        <item>Accueil</item>
+        <item>Fond d\'écran</item>
+        <item>Apparence</item>
+        <item>Système</item>
+    </string-array>
+    <string-array name="size_names">
+        <item>Petite</item>
+        <item>Moyenne</item>
+        <item>Grande</item>
+    </string-array>
+    <string-array name="radius_names">
+        <item>Carrés</item>
+        <item>Légers</item>
+        <item>Arrondis</item>
+        <item>Ronds</item>
+    </string-array>
+    <string-array name="font_names">
+        <item>Roboto</item>
+        <item>Condensée</item>
+        <item>Serif</item>
+        <item>Chasse fixe</item>
+        <item>Manuscrite</item>
+    </string-array>
+    <string-array name="color_names">
+        <item>Blanc</item>
+        <item>Ambre</item>
+        <item>Violet Jellyfin</item>
+        <item>Bleu ciel</item>
+        <item>Menthe</item>
+        <item>Corail</item>
+    </string-array>
+    <string-array name="speed_names">
+        <item>Désactivées</item>
+        <item>Rapides</item>
+        <item>Normales</item>
+        <item>Douces</item>
+        <item>Lentes</item>
+    </string-array>
+    <string-array name="interval_names">
+        <item>Toutes les 30 min</item>
+        <item>Toutes les heures</item>
+        <item>Toutes les 3 heures</item>
+        <item>Une fois par jour</item>
+    </string-array>
+    <string-array name="language_names">
+        <item>Automatique</item>
+        <item>English</item>
+        <item>Français</item>
+    </string-array>
+</resources>

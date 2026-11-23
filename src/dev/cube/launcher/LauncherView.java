@@ -146,11 +146,11 @@ public class LauncherView extends FrameLayout implements SettingsPanel.Host {
         // ---- icon buttons (top-right)
         bar = new LinearLayout(ctx);
         bar.setOrientation(LinearLayout.HORIZONTAL);
-        refreshBtn = iconButton(R.drawable.lucide_refresh_cw, "New wallpaper", "top:wall", this::newWallpaper);
-        bar.addView(iconButton(R.drawable.lucide_layout_grid, "All apps", "top:all", this::openAllApps));
+        refreshBtn = iconButton(R.drawable.lucide_refresh_cw, str(R.string.btn_new_wallpaper), "top:wall", this::newWallpaper);
+        bar.addView(iconButton(R.drawable.lucide_layout_grid, str(R.string.btn_all_apps), "top:all", this::openAllApps));
         bar.addView(refreshBtn);
-        bar.addView(iconButton(R.drawable.lucide_settings, "Settings", "top:settings", this::openCubeSettings));
-        bar.addView(iconButton(R.drawable.lucide_house, "Amazon home", "top:amazon", this::openAmazonHome));
+        bar.addView(iconButton(R.drawable.lucide_settings, str(R.string.btn_settings), "top:settings", this::openCubeSettings));
+        bar.addView(iconButton(R.drawable.lucide_house, str(R.string.btn_amazon_home), "top:amazon", this::openAmazonHome));
         // Top-right: the icons, and under them what the wallpaper shows.
         LinearLayout right = new LinearLayout(ctx);
         right.setOrientation(LinearLayout.VERTICAL);
@@ -192,9 +192,9 @@ public class LauncherView extends FrameLayout implements SettingsPanel.Host {
         bottom.setClipChildren(false);
         bottom.setPadding(0, px(165), 0, px(40));
         bottom.addView(rowScroll, new LinearLayout.LayoutParams(-1, -2));
-        resumeRow = new JfRow("Continue watching");
-        nextRow = new JfRow("Next up");
-        latestRow = new JfRow("Recently added");
+        resumeRow = new JfRow(str(R.string.row_resume));
+        nextRow = new JfRow(str(R.string.row_nextup));
+        latestRow = new JfRow(str(R.string.row_latest));
         page = new CenterScroll.V(ctx);
         page.setVerticalScrollBarEnabled(false);
         page.setClipChildren(false);
@@ -218,10 +218,10 @@ public class LauncherView extends FrameLayout implements SettingsPanel.Host {
         allCol.setOrientation(LinearLayout.VERTICAL);
         allCol.setPadding(px(48), px(30), px(48), 0);
         TextView allTitle = text(26, Color.WHITE, Look.font(false));
-        allTitle.setText("All apps");
+        allTitle.setText(R.string.btn_all_apps);
         allCol.addView(allTitle);
         TextView allHint = text(13, 0xFF9CA3AF, Look.font(false));
-        allHint.setText("Hold OK to show options");
+        allHint.setText(R.string.all_hint);
         allHint.setPadding(0, px(8), 0, px(8));
         allCol.addView(allHint);
         allScroll = new CenterScroll.V(ctx);
@@ -509,7 +509,7 @@ public class LauncherView extends FrameLayout implements SettingsPanel.Host {
         }
         if (home.isEmpty()) {
             TextView t = text(16, 0xFFE5E7EB, Look.font(false));
-            t.setText("No apps on Home. Open All apps (top right) to add some.");
+            t.setText(R.string.no_apps);
             row.addView(t);
         }
         if (!takeFocus) return;
@@ -813,40 +813,40 @@ public class LauncherView extends FrameLayout implements SettingsPanel.Host {
     }
 
     private void openJf(Intent i) {
-        if (i == null) { toast("Install Wholphin or Jellyfin to play"); return; }
-        try { getContext().startActivity(i); } catch (Exception e) { toast("Couldn't open the player"); }
+        if (i == null) { toast(str(R.string.no_player)); return; }
+        try { getContext().startActivity(i); } catch (Exception e) { toast(str(R.string.player_failed)); }
     }
 
     /** Hold OK on a Jellyfin card: play, details, mark watched, remove from Continue watching. */
     private void showItemMenu(final Jellyfin.Item it, View from) {
         menu(it.title);
-        View first = option(R.drawable.lucide_play, it.positionMs > 0 ? "Resume" : "Play", () -> {
+        View first = option(R.drawable.lucide_play, str(it.positionMs > 0 ? R.string.menu_resume : R.string.menu_play), () -> {
             closeOptions();
             openJf(Jellyfin.play(getContext(), it));
         });
         optionsCard.addView(first);
-        optionsCard.addView(option(R.drawable.lucide_info, "Details", () -> {
+        optionsCard.addView(option(R.drawable.lucide_info, str(R.string.menu_details), () -> {
             closeOptions();
             openJf(Jellyfin.details(getContext(), it));
         }));
         if (!"Series".equals(it.type)) {
-            optionsCard.addView(option(R.drawable.lucide_circle_check, "Mark as watched", () -> {
+            optionsCard.addView(option(R.drawable.lucide_circle_check, str(R.string.menu_watched), () -> {
                 closeOptions();
-                Jellyfin.markWatched(getContext(), it, ok -> afterServerChange(ok, it.title + " marked as watched"));
+                Jellyfin.markWatched(getContext(), it, ok -> afterServerChange(ok, getContext().getString(R.string.toast_watched, it.title)));
             }));
         }
         if (it.resumable) {
-            optionsCard.addView(option(R.drawable.lucide_x, "Remove from Continue watching", () -> {
+            optionsCard.addView(option(R.drawable.lucide_x, str(R.string.menu_remove_resume), () -> {
                 closeOptions();
                 Jellyfin.removeFromResume(getContext(), it,
-                        ok -> afterServerChange(ok, it.title + " removed from Continue watching"));
+                        ok -> afterServerChange(ok, getContext().getString(R.string.toast_removed_resume, it.title)));
             }));
         }
         showMenu(first, from);
     }
 
     private void afterServerChange(boolean ok, String message) {
-        toast(ok ? message : "Couldn't reach the Jellyfin server");
+        toast(ok ? message : str(R.string.server_unreachable));
         if (ok) Jellyfin.refresh(getContext(), this::showJellyfin, true);
     }
 
@@ -990,7 +990,7 @@ public class LauncherView extends FrameLayout implements SettingsPanel.Host {
         final boolean shown = onHome(a);
         menu(a.label);
         View first = option(shown ? R.drawable.lucide_circle_minus : R.drawable.lucide_house_plus,
-                shown ? "Remove from Home" : "Add to Home", () -> {
+                str(shown ? R.string.menu_remove_home : R.string.menu_add_home), () -> {
                     setOnHome(a, !shown);
                     if (!shown) {   // new Home apps go to the end of the row
                         List<String> o = list(KEY_ORDER);
@@ -998,14 +998,14 @@ public class LauncherView extends FrameLayout implements SettingsPanel.Host {
                         o.add(a.pkg);
                         prefs.edit().putString(KEY_ORDER, TextUtils.join(",", o)).apply();
                     }
-                    toast(a.label + (shown ? " removed from Home" : " added to Home"));
+                    toast(getContext().getString(shown ? R.string.toast_removed_home : R.string.toast_added_home, a.label));
                     closeOptions();
                     buildAllGrid("all:" + a.pkg);
                 });
         optionsCard.addView(first);
-        optionsCard.addView(option(R.drawable.lucide_info, "App info", () -> {
+        optionsCard.addView(option(R.drawable.lucide_info, str(R.string.menu_app_info), () -> {
             closeOptions();
-            launch(intentApp("App info", new Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+            launch(intentApp(str(R.string.menu_app_info), new Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
                     android.net.Uri.parse("package:" + a.pkg)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)));
         }));
         showMenu(first, allGrid.findViewWithTag("all:" + a.pkg));
@@ -1141,14 +1141,14 @@ public class LauncherView extends FrameLayout implements SettingsPanel.Host {
 
     @Override
     public void openFireTvSettings() {
-        launch(intentApp("Settings", new Intent(Intent.ACTION_MAIN)
+        launch(intentApp(str(R.string.set_firetv), new Intent(Intent.ACTION_MAIN)
                 .addCategory("android.intent.category.LEANBACK_SETTINGS")
                 .setPackage(HomeService.AMAZON_HOME).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)));
     }
 
     private void openAmazonHome() {
         HomeService.startBypass();
-        launch(intentApp("Amazon home", new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME)
+        launch(intentApp(str(R.string.btn_amazon_home), new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME)
                 .setPackage(HomeService.AMAZON_HOME).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)));
     }
 
@@ -1164,7 +1164,7 @@ public class LauncherView extends FrameLayout implements SettingsPanel.Host {
             getContext().startActivity(a.intent);
         } catch (Exception e) {
             HomeService.bypass = false;
-            toast("Couldn't open " + a.label);
+            toast(getContext().getString(R.string.open_failed, a.label));
         }
     }
 
@@ -1205,4 +1205,6 @@ public class LauncherView extends FrameLayout implements SettingsPanel.Host {
     private int px(float v) { return Math.round(v * dp); }
 
     private float radius() { return Look.radiusDp * dp; }
+
+    private String str(int id) { return getContext().getString(id); }
 }

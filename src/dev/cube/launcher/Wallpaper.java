@@ -53,7 +53,6 @@ final class Wallpaper {
         return BitmapFactory.decodeFile(f.getPath(), o);
     }
 
-    static final String[] INTERVAL_NAMES = {"Every 30 min", "Every hour", "Every 3 hours", "Once a day"};
     private static final long[] INTERVALS = {30, 60, 180, 1440};   // minutes
 
     /** Sources ticked in the settings, in rotation order. */
@@ -176,7 +175,7 @@ final class Wallpaper {
                 // Wallpaper-shaped only: wide and large enough for a 1080p screen.
                 if (o.outWidth < 1200 || o.outWidth < o.outHeight * 1.3f) continue;
                 writeFile(c, jpg);
-                return nasaCaption(meta);
+                return nasaCaption(Lang.wrap(c), meta);
             }
         } catch (Exception e) {
             Log.w(TAG, "wallpaper nasa: " + e);
@@ -202,10 +201,11 @@ final class Wallpaper {
     }
 
     /** "Earth from the ISS · Expedition 34" (NASA's ISS photos have no other description). */
-    private static String nasaCaption(JSONObject meta) {
+    private static String nasaCaption(Context t, JSONObject meta) {
         String text = meta.optString("description") + " " + meta.optString("title");
         java.util.regex.Matcher m = java.util.regex.Pattern.compile("Expedition\\s+(\\d+)").matcher(text);
-        return "Earth from the ISS" + (m.find() ? " · Expedition " + m.group(1) : "");
+        String s = t.getString(R.string.nasa_caption);
+        return m.find() ? s + " · " + t.getString(R.string.nasa_expedition, m.group(1)) : s;
     }
 
     /** Description of the current picture, or "". */

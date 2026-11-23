@@ -16,6 +16,11 @@ public class MainActivity extends Activity {
     private static final long COVER_HOLD_MS = 400;
 
     @Override
+    protected void attachBaseContext(Context base) {
+        super.attachBaseContext(Lang.wrap(base));   // texts in the language chosen in the settings
+    }
+
+    @Override
     protected void onCreate(Bundle state) {
         super.onCreate(state);
         view = new LauncherView(this);
@@ -44,8 +49,7 @@ public class MainActivity extends Activity {
         HomeService.bypass = false;
         HomeService.cubeVisible = true;
         HomeService.unanswered = 0;
-        view.setNotice(serviceEnabled() ? null
-                : "Home button service is off, so Home opens the Amazon screen. Re-enable it over ADB.");
+        view.setNotice(serviceEnabled() ? null : getString(R.string.notice_service));
         // Rebuild only when apps were installed/removed, so returning home never flickers.
         if (dirty) {
             dirty = false;

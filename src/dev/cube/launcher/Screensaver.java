@@ -41,6 +41,11 @@ public class Screensaver extends DreamService {
     };
 
     @Override
+    protected void attachBaseContext(android.content.Context base) {
+        super.attachBaseContext(Lang.wrap(base));
+    }
+
+    @Override
     public void onAttachedToWindow() {
         super.onAttachedToWindow();
         setInteractive(false);   // any key wakes the TV

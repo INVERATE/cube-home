@@ -90,17 +90,18 @@ final class Jellyfin {
         net.execute(() -> {
             try {
                 String base = base(c), uid = userId(c);
+                Context t = Lang.wrap(c);   // texts in the chosen language
                 Rows r = new Rows();
                 Set<String> seen = new HashSet<>();
                 JSONArray a = new JSONObject(get(c, "/UserItems/Resume?userId=" + uid
                         + "&limit=12&mediaTypes=Video&enableUserData=true")).getJSONArray("Items");
-                for (int k = 0; k < a.length(); k++) add(r.resume, seen, parse(base, a.getJSONObject(k), true));
+                for (int k = 0; k < a.length(); k++) add(r.resume, seen, parse(t, base, a.getJSONObject(k), true));
                 a = new JSONObject(get(c, "/Shows/NextUp?userId=" + uid + "&limit=12&enableUserData=true"))
                         .getJSONArray("Items");
-                for (int k = 0; k < a.length(); k++) add(r.nextUp, seen, parse(base, a.getJSONObject(k), false));
+                for (int k = 0; k < a.length(); k++) add(r.nextUp, seen, parse(t, base, a.getJSONObject(k), false));
                 a = new JSONArray(get(c, "/Items/Latest?userId=" + uid
                         + "&limit=16&includeItemTypes=Movie,Episode&groupItems=true&enableUserData=true"));
-                for (int k = 0; k < a.length(); k++) add(r.latest, seen, parse(base, a.getJSONObject(k), false));
+                for (int k = 0; k < a.length(); k++) add(r.latest, seen, parse(t, base, a.getJSONObject(k), false));
                 last = r;
                 main.post(() -> sink.accept(r));
             } catch (Exception e) {
@@ -115,7 +116,7 @@ final class Jellyfin {
         if (seen.add(it.id)) row.add(it);
     }
 
-    private static Item parse(String base, JSONObject o, boolean resume) throws Exception {
+    private static Item parse(Context t, String base, JSONObject o, boolean resume) throws Exception {
         Item it = new Item();
         it.id = o.getString("Id");
         it.type = o.optString("Type");
@@ -124,7 +125,7 @@ final class Jellyfin {
         long run = o.optLong("RunTimeTicks", 0), pos = ud == null ? 0 : ud.optLong("PlaybackPositionTicks", 0);
         it.positionMs = pos / 10_000L;
         it.progress = run > 0 ? Math.min(1f, (float) pos / run) : 0f;
-        String left = run > 0 && pos > 0 ? minutes((run - pos) / 600_000_000L) : "";
+        String left = run > 0 && pos > 0 ? minutes(t, (run - pos) / 600_000_000L) : "";
         boolean episode = "Episode".equals(it.type);
         if (episode) {
             it.title = o.optString("SeriesName", o.optString("Name"));
@@ -133,7 +134,7 @@ final class Jellyfin {
         } else if ("Series".equals(it.type)) {
             it.title = o.optString("Name");
             int n = o.optInt("ChildCount", 0);
-            it.subtitle = n > 1 ? n + " new episodes" : "New episodes";
+            it.subtitle = n > 1 ? t.getString(R.string.jf_new_eps, n) : t.getString(R.string.jf_new);
         } else {
             it.title = o.optString("Name");
             it.subtitle = !left.isEmpty() ? left
@@ -157,9 +158,10 @@ final class Jellyfin {
         return it;
     }
 
-    private static String minutes(long m) {
+    private static String minutes(Context t, long m) {
         if (m < 1) return "";
-        return (m >= 60 ? (m / 60) + " h " + (m % 60) + " min" : m + " min") + " left";
+        int mm = (int) m;
+        return mm >= 60 ? t.getString(R.string.jf_left_h, mm / 60, mm % 60) : t.getString(R.string.jf_left_min, mm);
     }
 
     // ------------------------------------------------------------------ actions
